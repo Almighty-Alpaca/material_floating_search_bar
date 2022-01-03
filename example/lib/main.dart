@@ -122,6 +122,33 @@ class _HomeState extends State<Home> {
         scrollPadding: EdgeInsets.zero,
         transition: CircularFloatingSearchBarTransition(spacing: 16),
         builder: (context, _) => buildExpandableBody(model),
+        bottomSpacingTop: 8,
+        bottomPaddingRight: false,
+        bottomBuilder: (context, transition) {
+          return SizedBox(
+            height: 40,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: 6,
+              itemBuilder: (context, index) {
+                return FilterChip(
+                  backgroundColor: Colors.white,
+                  elevation: 3,
+                  label: Text('Filter  ${index+1}'),
+                  selected: false,
+                  onSelected: (value) {
+                    print(
+                      'Chip $index was ${value ? '' : 'un'}selected',
+                    );
+                  },
+                );
+              },
+              separatorBuilder: (context, index) {
+                return const SizedBox(width: 8);
+              },
+            ),
+          );
+        },
         body: buildBody(),
       ),
     );

@@ -281,6 +281,11 @@ class FloatingSearchBar extends ImplicitlyAnimatedWidget {
   /// to `true` on all [Scrollable]s.
   final FloatingSearchBarBuilder builder;
 
+  final FloatingSearchBarBuilder? bottomBuilder;
+  final double bottomSpacingTop;
+  final bool bottomPaddingRight;
+  final bool bottomPaddingLeft;
+
   /// {@template floating_search_bar.controller}
   /// The controller for this `FloatingSearchBar` which can be used
   /// to programatically open, close, show or hide the `FloatingSearchBar`.
@@ -343,6 +348,7 @@ class FloatingSearchBar extends ImplicitlyAnimatedWidget {
   /// The [EdgeInsets] of the [SingleChildScrollView] holding the expandable body of
   /// this `FloatingSearchBar`.
   final EdgeInsets scrollPadding;
+
   const FloatingSearchBar({
     Key? key,
     Duration implicitDuration = const Duration(milliseconds: 600),
@@ -383,6 +389,10 @@ class FloatingSearchBar extends ImplicitlyAnimatedWidget {
     this.onFocusChanged,
     this.transition,
     required this.builder,
+    this.bottomBuilder,
+    this.bottomSpacingTop = 16,
+    this.bottomPaddingLeft = true,
+    this.bottomPaddingRight = true,
     this.controller,
     this.textInputAction = TextInputAction.search,
     this.textInputType = TextInputType.text,
@@ -634,34 +644,51 @@ class FloatingSearchBarState
   Widget _buildSearchBar() {
     final padding = _resolve(transition.lerpPadding());
     final borderRadius = transition.lerpBorderRadius();
+    final margin = transition.lerpMargin();
 
-    final container = Semantics(
-      hidden: !isVisible,
-      focusable: true,
-      focused: isOpen,
-      child: Padding(
-        padding: transition.lerpMargin(),
-        child: Material(
-          elevation: transition.lerpElevation(),
-          shadowColor: style.shadowColor,
-          borderRadius: borderRadius,
-          child: Container(
-            width: transition.lerpWidth(),
-            height: transition.lerpHeight(),
-            padding: EdgeInsets.only(top: padding.top, bottom: padding.bottom),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: transition.lerpBackgroundColor(),
-              border: Border.fromBorderSide(style.border),
+    final container = Column(
+      children: [
+        Semantics(
+          hidden: !isVisible,
+          focusable: true,
+          focused: isOpen,
+          child: Padding(
+            padding: margin,
+            child: Material(
+              elevation: transition.lerpElevation(),
+              shadowColor: style.shadowColor,
               borderRadius: borderRadius,
-            ),
-            child: ClipRRect(
-              borderRadius: borderRadius,
-              child: _buildInnerBar(),
+              child: Container(
+                width: transition.lerpWidth(),
+                height: transition.lerpHeight(),
+                padding: EdgeInsets.only(top: padding.top, bottom: padding.bottom),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                color: transition.lerpBackgroundColor(),
+                  border: Border.fromBorderSide(style.border),
+                  borderRadius: borderRadius,
+                ),
+                child: ClipRRect(
+                  borderRadius: borderRadius,
+                  child: _buildInnerBar(),
+                ),
+              ),
             ),
           ),
         ),
-      ),
+        if (widget.bottomBuilder != null) ...[
+          Padding(
+            padding:
+               margin.clamp(EdgeInsets.zero, EdgeInsets.only(
+                 top: widget.bottomSpacingTop,
+                 bottom: 0,
+                 left: widget.bottomPaddingLeft ? double.infinity:0,
+                 right: widget.bottomPaddingRight ? double.infinity:0,
+               ),),
+            child: widget.bottomBuilder!(context, animation),
+          ),
+        ]
+      ],
     );
 
     final bar = SlideTransition(
